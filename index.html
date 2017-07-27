@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title> Brainfuck Game Engine </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <style type="text/css">
+        @import url(https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono);
+
+        * {
+            margin: 0;
+            border: 0;
+            padding: 0;
+            outline: 0;
+            font-size: 0;
+            box-sizing: border-box;
+            vertical-align: middle;
+            list-style-type: none;
+        }
+        body {
+            font-family: "Roboto", sans-serif;
+            background-color: #efefef;
+            overflow: hidden;
+        }
+        section {
+            display: block;
+            padding: 30px;
+        }
+        section:first-child {
+            padding: 30px 30px 0;
+        }
+        section, #tape {
+            text-align: center;
+        }
+        #tape {
+            overflow-x: auto;
+            white-space: nowrap;
+            margin-top: 30px;
+        }
+        #tape::after {
+            content: "\22EF";
+            font-size: 16px;
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            line-height: 40px;
+            color: gray;
+            user-select: none;
+            vertical-align: bottom;
+        }
+        #system-tape li, #tape li {
+            position: relative;
+            font-size: 16px;
+            display: inline-block;
+            border: 1px solid #aeaeae;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            line-height: 40px;
+            border-right: none;
+            color: gray;
+            background-color: #fefefe;
+            user-select: none;
+        }
+        #system-tape li:last-of-type, #tape li:last-of-type {
+            border-right: 1px solid #aeaeae;
+        }
+        #system-tape li {
+            border-color: cornflowerblue;
+            color: cornflowerblue;
+        }
+        #system-tape li::after, #tape li::after {
+            content: "#" attr(data-cellid);
+            font-size: 9px;
+            position: absolute;
+            left: 2px;
+            transform: translateY(-14px);
+        }
+        #tape li::after {
+            color: #aeaeae;
+        }
+        hr {
+            height: 1px;
+            background-color: #aeaeae;
+            margin: 2px;
+        }
+        p, textarea, label {
+            font-size: 16px;
+        }
+        label {
+            user-select: none;
+        }
+        .key-label {
+            color: gray;
+            position: absolute;
+            transform: translateX(-25px) translateY(40px);
+            font-family: "Roboto Mono", monospace;
+        }
+        .tape-label {
+            position: absolute;
+            transform: translateY(-16px);
+            font-size: 12px;
+        }
+        .tape-label.system {
+            color: cornflowerblue;
+        }
+        .tape-label.user {
+            color: gray;
+        }
+        textarea {
+            font-family: "Roboto Mono", monospace;
+            resize: none;
+            width: 50%;
+            height: 325px;
+            border: 1px solid #aeaeae;
+            padding: 10px;
+        }
+        textarea:first-of-type {
+            border-right: none;
+        }
+        button {
+            cursor: pointer;
+            user-select: none;
+            border-radius: 1px;
+            font-family: "Roboto", sans-serif;
+            font-size: 16px;
+            padding: 10px 20px;
+            background-color: #b0ccff;
+            box-shadow: 0 3px 0 cornflowerblue;
+            transition: all .1s ease;
+        }
+        button:active {
+            transform: translateY(3px);
+            box-shadow: 0 0px 0 cornflowerblue;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <section>
+            <ul id="system-tape">
+                <label class="tape-label system"> Input section </label>
+                <li class="system-cell" data-cellid="0">0</li><label class="key-label">&larr;</label>
+                <li class="system-cell" data-cellid="1">0</li><label class="key-label">&uarr;</label>
+                <li class="system-cell" data-cellid="2">0</li><label class="key-label">&rarr;</label>
+                <li class="system-cell" data-cellid="3">0</li><label class="key-label">&darr;</label>
+                <li class="system-cell" data-cellid="4">0</li><label class="key-label">A</label>
+                <li class="system-cell" data-cellid="5">0</li><label class="key-label">S</label>
+            </ul>
+            <ul id="tape">
+                <label class="tape-label user"> Data section</label>
+                <li data-cellid="6">0</li>
+                <li data-cellid="7">0</li>
+                <li data-cellid="8">0</li>
+                <li data-cellid="9">0</li>
+                <li data-cellid="10">0</li>
+                <li data-cellid="11">0</li>
+                <li data-cellid="12">0</li>
+                <li data-cellid="13">0</li>
+                <li data-cellid="14">0</li>
+                <li data-cellid="15">0</li>
+                <li data-cellid="16">0</li>
+                <li data-cellid="17">0</li>
+            </ul>
+        </section>
+        <section>
+            <button onclick="start_game();"> Play </button>
+        </section>
+        <textarea spellcheck="false" id="load-code" placeholder="load.bf&#10;&#10;Code to be run upon startup.&#10;Runs only once."></textarea>
+        <textarea spellcheck="false" id="update-code" placeholder="update.bf&#10;&#10;Code to be run during the game.&#10;Runs on every frame."></textarea>
+    </main>
+    <script type="text/javascript">
+        let tape = [];
+        let tape_el = document.getElementById("tape");
+        let reset_tape = function() {
+            tape = [];
+            for (let i = 0, l = 17; i < l; i++) {
+                tape[i] = 0;
+            }
+        }
+        reset_tape();
+
+        let update_visual_tape = function() {
+            let new_el = document.querySelectorAll(".new");
+            if(new_el) {
+                for (let i = 0, l = new_el.length; i < l; i++) {
+                    new_el[i].remove();
+                }
+            }
+            for (let i = 0, l = Math.max(18,tape.length); i < l; i++) {
+                let li = document.querySelector("[data-cellid='" + i + "']");
+                if(!li && tape[i] !== undefined) {
+                    li = document.createElement("li");
+                    li.dataset.cellid = i;
+                    li.className = "new";
+                    tape_el.append(li);
+                }
+                li.innerText = tape[i] || 0;
+            }
+        }
+
+        let start_game = function() {
+            reset_tape();
+            let load_code = document.getElementById("load-code");
+            compile_bf(load_code.value);
+            update_visual_tape();
+        }
+
+        let compile_bf = function(code) {
+            // Filter out anything that's not valid Brainfuck code
+            code = code.replace(/[^\,\.\[\]\<\>\-\+]/g, "").split("\n").join("");
+
+            let memory_pointer = 0;
+            for (let i = 0, l = code.length; i < l; i++) {
+                switch(code[i]) {
+                    case ">":
+                        memory_pointer++;
+                        break;
+                    case "<":
+                        memory_pointer--;
+                        if(memory_pointer < 0)
+                            memory_pointer = 0;
+                        break;
+                    case "+":
+                        while(tape.length < memory_pointer+1) {
+                            tape.push(0);
+                        }
+                        if(memory_pointer > 5) {
+                            tape[memory_pointer]++;
+                        }
+                        break;
+                    case "-":
+                        while(tape.length < memory_pointer+1) {
+                            tape.push(0);
+                        }
+                        if(memory_pointer > 5) {
+                            tape[memory_pointer]--;
+                        }
+                        break;
+                    case "[":
+                        /* TODO */
+                        break;
+                    case "]":
+                        /* TODO */
+                        break;
+                    case ".":
+                        /* TODO */
+                        break;
+                    case ",":
+                        /* TODO */
+                        break;
+                    default: break;
+                }
+            }
+        }
+
+        let handle_keypress = function(e) {
+            /* Left  37   Up    38
+             * Right 39   Down  40
+             * A     65   S     83
+             */
+            let key = e.keyCode || e.which;
+            let pos = key > 36 && key < 41 ? key - 37
+                    : key === 65 ? 4
+                    : key === 83 ? 5 : -1;
+            if(pos > -1) {
+                tape[pos] = e.type == "keydown" ? 1 : 0;
+                update_visual_tape();
+            }
+        }
+        document.onkeydown = handle_keypress;
+        document.onkeyup = handle_keypress;
+    </script>
+</body>
+</html>
