@@ -1,16 +1,23 @@
-const {app, BrowserWindow} = require("electron");
+const {ipcMain, app, BrowserWindow} = require("electron");
 const path = require("path");
 const url = require("url");
 
+const DEBUG = true;
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win;
+let main_window,
+    game_window;
 
 let createWindow = function() {
     // Create the browser window.
-    win = new BrowserWindow({
+    main_window = new BrowserWindow({
         width: 800,
-        height: 600,
+        height: 800,
+        useContentSize: true,
+        webPreferences: {
+           experimentalFeatures: true
+        },
         show: false,
         resizable: false,
         fullscreen: false,
@@ -19,48 +26,75 @@ let createWindow = function() {
         autoHideMenuBar: true
     });
 
+
     // and load the index.html of the app.
-    win.loadURL(url.format({
+    main_window.loadURL(url.format({
         pathname: path.join(__dirname, "index.html"),
         protocol: "file:",
         slashes: true
     }));
 
-    // Open the DevTools.
-    //win.webContents.openDevTools();
+    if(DEBUG) main_window.webContents.openDevTools();
 
-    win.once("ready-to-show", () => {
-        win.show()
-    })
+    main_window.once("ready-to-show", () => {  main_window.show();  });
 
-    // Emitted when the window is closed.
-    win.on("closed", () => {
-        // Dereference the window object, usually you would store windows
-        // in an array if your app supports multi windows, this is the time
-        // when you should delete the corresponding element.
-        win = null
+    main_window.on("closed", () => {
+        main_window = null;
+        app.quit();
     });
-    win.setMenu(null);
+    main_window.setMenu(null);
+
+    ipcMain.on("run-game", (event, arg) => {
+        if(game_window == null) {
+            game_window = new BrowserWindow({
+                width: 800,
+                height: 608,
+                minWidth: 800,
+                minHeight: 608,
+                useContentSize: true,
+                webPreferences: {
+                   experimentalFeatures: true
+                },
+                show: false,
+                resizable: true,
+                fullscreen: false,
+                fullscreenable: true,
+                maximizable: true,
+                autoHideMenuBar: true
+            });
+
+            game_window.on("closed", () => {
+                game_window = null;
+            });
+
+            game_window.once("ready-to-show", () => {
+                game_window.show();
+                game_window.focus();
+                game_window.webContents.send("tape", arg);
+                if(DEBUG) game_window.webContents.openDevTools();
+            });
+
+            game_window.loadURL(url.format({
+                pathname: path.join(__dirname, "game.html"),
+                protocol: "file:",
+                slashes: true
+            }));
+            event.returnValue = "sent";
+        } else {
+            game_window.focus();
+        }
+    });
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+app.commandLine.appendSwitch("enable-webassembly");
+
 app.on("ready", createWindow);
 
 // Quit when all windows are closed.
-app.on("window-all-closed", () => {
-    // On macOS it is common for applications and their menu bar
-    // to stay active until the user quits explicitly with Cmd + Q
-    if (process.platform !== "darwin") {
-        app.quit();
-    }
-})
+app.on("window-all-closed", () => {  app.quit();  });
 
 app.on("activate", () => {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (win === null) {
+    if (main_window === null) {
         createWindow();
     }
-})
+});

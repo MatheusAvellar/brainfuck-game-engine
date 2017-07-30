@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html>
+<head lang="en">
     <meta charset="utf-8"/>
     <title> Brainfuck Game Engine </title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -21,6 +21,8 @@
             font-family: "Roboto", sans-serif;
             background-color: #efefef;
             overflow: hidden;
+            width: 800px;
+            height: 800px;
         }
         section {
             display: block;
@@ -115,6 +117,7 @@
             height: 325px;
             border: 1px solid #aeaeae;
             padding: 10px;
+            word-break: break-all;
         }
         textarea:first-of-type {
             border-right: none;
@@ -129,10 +132,19 @@
             background-color: #b0ccff;
             box-shadow: 0 3px 0 cornflowerblue;
             transition: all .1s ease;
+            margin: 1px;
         }
         button:active {
             transform: translateY(3px);
             box-shadow: 0 0px 0 cornflowerblue;
+        }
+        span {
+            font-size: 12px;
+        }
+        #status {
+            font-size: 16px;
+            font-family: "Roboto Mono", monospace;
+            white-space: pre;
         }
     </style>
 </head>
@@ -165,112 +177,33 @@
             </ul>
         </section>
         <section>
-            <button onclick="start_game();"> Play </button>
+            <button id="run">Run</button>
+            <button id="stop">Stop</button>
         </section>
+        <div id="status"></div>
+        <button hidden class="download" onclick="download_file('load-code','load.bf');"> load.bf </button>
+        <button hidden class="download" onclick="download_file('update-code','update.bf');"> update.bf </button>
+        <br/>
         <textarea spellcheck="false" id="load-code" placeholder="load.bf&#10;&#10;Code to be run upon startup.&#10;Runs only once."></textarea>
         <textarea spellcheck="false" id="update-code" placeholder="update.bf&#10;&#10;Code to be run during the game.&#10;Runs on every frame."></textarea>
     </main>
+    <script type="text/javascript" src="./copy.sh.brainfuck.js"></script>
     <script type="text/javascript">
-        let tape = [];
-        let tape_el = document.getElementById("tape");
-        let reset_tape = function() {
-            tape = [];
-            for (let i = 0, l = 17; i < l; i++) {
-                tape[i] = 0;
-            }
-        }
-        reset_tape();
-
-        let update_visual_tape = function() {
-            let new_el = document.querySelectorAll(".new");
-            if(new_el) {
-                for (let i = 0, l = new_el.length; i < l; i++) {
-                    new_el[i].remove();
-                }
-            }
-            for (let i = 0, l = Math.max(18,tape.length); i < l; i++) {
-                let li = document.querySelector("[data-cellid='" + i + "']");
-                if(!li && tape[i] !== undefined) {
-                    li = document.createElement("li");
-                    li.dataset.cellid = i;
-                    li.className = "new";
-                    tape_el.append(li);
-                }
-                li.innerText = tape[i] || 0;
-            }
+        let download_file = function(id, filename) {
+            var el = document.createElement("a");
+            var editor = document.getElementById(id);
+            el.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(editor.value));
+            el.setAttribute("download", filename);
+            el.style.display = "none";
+            document.body.appendChild(el);
+            el.click();
+            document.body.removeChild(el);
         }
 
-        let start_game = function() {
-            reset_tape();
-            let load_code = document.getElementById("load-code");
-            compile_bf(load_code.value);
-            update_visual_tape();
+        let done = function() {
+            const {ipcRenderer} = require("electron");
+            console.log(ipcRenderer.sendSync("run-game", tape));
         }
-
-        let compile_bf = function(code) {
-            // Filter out anything that's not valid Brainfuck code
-            code = code.replace(/[^\,\.\[\]\<\>\-\+]/g, "").split("\n").join("");
-
-            let memory_pointer = 0;
-            for (let i = 0, l = code.length; i < l; i++) {
-                switch(code[i]) {
-                    case ">":
-                        memory_pointer++;
-                        break;
-                    case "<":
-                        memory_pointer--;
-                        if(memory_pointer < 0)
-                            memory_pointer = 0;
-                        break;
-                    case "+":
-                        while(tape.length < memory_pointer+1) {
-                            tape.push(0);
-                        }
-                        if(memory_pointer > 5) {
-                            tape[memory_pointer]++;
-                        }
-                        break;
-                    case "-":
-                        while(tape.length < memory_pointer+1) {
-                            tape.push(0);
-                        }
-                        if(memory_pointer > 5) {
-                            tape[memory_pointer]--;
-                        }
-                        break;
-                    case "[":
-                        /* TODO */
-                        break;
-                    case "]":
-                        /* TODO */
-                        break;
-                    case ".":
-                        /* TODO */
-                        break;
-                    case ",":
-                        /* TODO */
-                        break;
-                    default: break;
-                }
-            }
-        }
-
-        let handle_keypress = function(e) {
-            /* Left  37   Up    38
-             * Right 39   Down  40
-             * A     65   S     83
-             */
-            let key = e.keyCode || e.which;
-            let pos = key > 36 && key < 41 ? key - 37
-                    : key === 65 ? 4
-                    : key === 83 ? 5 : -1;
-            if(pos > -1) {
-                tape[pos] = e.type == "keydown" ? 1 : 0;
-                update_visual_tape();
-            }
-        }
-        document.onkeydown = handle_keypress;
-        document.onkeyup = handle_keypress;
     </script>
 </body>
 </html>
