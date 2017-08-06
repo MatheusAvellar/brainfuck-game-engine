@@ -12,7 +12,7 @@ Insert funny 'an image is worth a thousand words' joke here, or something.
     <img src="http://i.imgur.com/tJHTYdF.png"/>
 </p>
 <p align="center">
-    <img src="http://i.imgur.com/IuYT1Z3.png"/>
+    <img src="http://i.imgur.com/cYNrGWa.png"/>
 </p>
 
 
