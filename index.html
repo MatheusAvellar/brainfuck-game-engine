@@ -1,22 +1,19 @@
 <!DOCTYPE html>
 <html>
-<html lang="en" manifest="bf.appcache">
+<html lang="en">
     <meta charset="utf-8"/>
     <title> Counterintuitive yet Unique Brainfuck Engine </title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,400i,700,700i|Roboto:400,400i,700,700i" rel="stylesheet">
     <style type="text/css">
-        @import url(https://fonts.googleapis.com/css?family=Roboto);
-        @import url(https://fonts.googleapis.com/css?family=Roboto+Mono);
-
         * {
             margin: 0;
             border: 0;
             padding: 0;
             outline: 0;
-            font-size: 0;
             box-sizing: border-box;
             vertical-align: middle;
-            list-style-type: none;
+            list-style: none;
         }
         body {
             font-family: "Roboto", sans-serif;
@@ -25,31 +22,31 @@
             width: 800px;
             height: 800px;
         }
-        section {
+        .part {
             display: block;
             padding: 30px;
             text-align: center;
         }
-        hr {
-            height: 1px;
-            background-color: #aeaeae;
-            margin: 2px;
-        }
-        p, textarea {
+        .codearea {
             font-size: 16px;
+            line-height: 1.5;
+            width: 94%;
+            display: inline-block;
+            padding: 10px;
         }
-        textarea, #sample-code {
+        #sample-code {
+            width: 100%;
+            padding: 15px 10px 10px;
+        }
+        .codearea, #sample-code {
             font-family: "Roboto Mono", monospace;
             resize: none;
-            width: 50%;
             border: 1px solid #aeaeae;
-            padding: 15px 10px 10px;
             word-break: break-all;
-            width: 100%;
             height: 600px;
             background-color: #fff;
         }
-        button {
+        .clickable {
             cursor: pointer;
             user-select: none;
             border-radius: 1px;
@@ -61,15 +58,12 @@
             transition: all .1s ease;
             margin: 5px;
         }
-        button:active {
+        .clickable:active {
             transform: translateY(3px);
             box-shadow: 0 0px 0 cornflowerblue;
         }
         #run {
             margin: .5px;
-        }
-        span {
-            font-size: 12px;
         }
         #status {
             font-size: 16px;
@@ -82,15 +76,19 @@
         }
         #tabs {
             padding: 0;
+            font-size: 0;
             text-align: left;
         }
-        #tabs > div {
+        #tabs [data-tab]:first-child {
+            margin-left: 48px;
+        }
+        #tabs [data-tab] {
             cursor: default;
             padding-left: 10px;
             border: 1px solid #aeaeae;
             display: inline-block;
             font-family: "Roboto Mono", monospace;
-            width: 200px;
+            width: 150px;
             color: #666;
             font-size: 16px;
             height: 50px;
@@ -100,10 +98,10 @@
             transform: translateY(1px);
             position: relative;
         }
-        #tabs > div:not(:last-of-type) {
+        #tabs [data-tab]:not([data-id="4"]) {
             border-right: 0;
         }
-        #tabs > div.selected {
+        #tabs [data-tab].selected {
             border-bottom: 0;
             color: #333;
             background-color: #fff;
@@ -113,7 +111,8 @@
         }
         [data-id="1"].selected ~ [data-id="1"],
         [data-id="2"].selected ~ [data-id="2"],
-        [data-id="3"].selected ~ [data-id="3"] {
+        [data-id="3"].selected ~ [data-id="3"],
+        [data-id="4"].selected ~ [data-id="4"] {
             display: block;
         }
         [data-id]:not(.selected) .download {
@@ -131,6 +130,57 @@
         .download:hover {
             fill: #333;
         }
+        .line-numbers {
+            width: 6%;
+            padding: 11px 5px;
+            height: 600px;
+            word-break: break-all;
+            overflow: hidden;
+            display: inline-block;
+            counter-reset: line;
+        }
+        .line-numbers span {
+            width: 100%;
+            display: block;
+            text-align: right;
+            padding: 0px;
+            line-height: 1.5;
+            font-size: 16px;
+            color: #aeaeae;
+        }
+        .line-numbers span::before {
+            counter-increment: line;
+            content: counter(line);
+            font-size: 16px;
+            user-select: none;
+        }
+        #docs {
+            overflow-y: auto;
+            text-align: left;
+            font-family: "Roboto", sans-serif;
+            background-color: #fff;
+            padding: 15px;
+            border-top: 1px solid #aeaeae;
+            height: 600px;
+        }
+        #docs p, #docs pre, #docs code {
+            font-size: 16px;
+        }
+        #docs h2 {
+            margin: 20px 0 10px;
+            font-size: 23px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+        #docs pre, #docs code {
+            font-family: "Robot Mono", monospace;
+            padding: 2px;
+            background-color: #eee;
+        }
+        #docs pre {
+            margin: 10px;
+            padding: 5px 10px;
+        }
     </style>
 </head>
 <body>
@@ -140,40 +190,103 @@
         </defs>
     </svg>
     <main>
-        <section>
-            <button id="run"> Run </button>
+        <section class="part">
+            <button id="run" class="clickable"> Run </button>
         </section>
         <div id="status"> Welcome to CUBE, the Counterintuitive yet Unique Brainfuck Engine </div>
-        <section id="tabs">
-            <div onclick="change_tab(this);" data-id="1" class="selected">
+        <section id="tabs" class="part">
+            <div data-tab onclick="change_tab(this);" data-id="1" class="selected">
                 load.bf
                 <svg class="download" viewBox="0 0 24 24" onclick="download_file('load-code','load.bf');">
                     <use xlink:href="#dl"/>
                 </svg>
             </div>
-            <div onclick="change_tab(this);" data-id="2">
+            <div data-tab onclick="change_tab(this);" data-id="2">
                 update.bf
                 <svg class="download" viewBox="0 0 24 24" onclick="download_file('update-code','update.bf');">
                     <use xlink:href="#dl"/>
                 </svg>
             </div>
-            <div onclick="change_tab(this);" data-id="3"> sample codes </div>
+            <div data-tab onclick="change_tab(this);" data-id="3"> sample codes </div>
+            <div data-tab onclick="change_tab(this);" data-id="4"> cheatsheet </div>
             <!-- -->
-            <textarea
-                id="load-code"
-                data-id="1"
-                spellcheck="false"
-                placeholder="load.bf&#10;&#10;Code to be run upon startup.&#10;Runs only once."
-            ></textarea>
-            <textarea
-                id="update-code"
-                data-id="2"
-                spellcheck="false"
-                placeholder="update.bf&#10;&#10;Code to be run during the game.&#10;Runs on every frame."
-            ></textarea>
-            <section id="sample-code" data-id="3"></section>
+            <div data-id="1">
+                <textarea
+                    id="load-code"
+                    class="codearea"
+                    spellcheck="false"
+                    placeholder="load.bf&#10;&#10;Code to be run upon startup.&#10;Runs only once."
+                ></textarea>
+            </div>
+            <div data-id="2">
+                <textarea
+                    id="update-code"
+                    class="codearea"
+                    spellcheck="false"
+                    placeholder="update.bf&#10;&#10;Code to be run during the game.&#10;Runs on every frame."
+                ></textarea>
+            </div>
+            <section id="sample-code" class="part" data-id="3"></section>
+            <section id="docs" class="part" data-id="4">
+                <h2> Input (<code>,</code>) </h2>
+<pre>0 = Left arrow             => (0 = unpressed, 1 = pressed)
+1 = Up arrow               => (0 = unpressed, 1 = pressed)
+2 = Right arrow            => (0 = unpressed, 1 = pressed)
+3 = Down arrow             => (0 = unpressed, 1 = pressed)
+4 = 'A' key                => (0 = unpressed, 1 = pressed)
+5 = 'S' key                => (0 = unpressed, 1 = pressed)
+6 = X coordinate of mouse  => (0 to 24)
+7 = Y coordinate of mouse  => (0 to 18)
+8 = Mouse click            => (0 = unpressed, 1 = pressed)</pre>
+                <h2> Output (<code>.</code>)</h2>
+<pre>0 = No change (shows the background color)
+1 = Black (#333)
+2 = Gray  (#ccc)
+3 = White (#fff)
+4 = Red   (#c33)
+5 = Green (#3c3)
+6 = Blue  (#33c)</pre>
+            </section>
         </section>
     </main>
+    <script type="text/javascript">
+        let update_line_numbers = function(ta, el) {
+            let lines = ta.value.split("\n").length;
+            let child_count = el.children.length;
+            let difference = lines - child_count;
+
+            if(difference > 0) {
+                let frag = document.createDocumentFragment();
+                while(difference > 0) {
+                    frag.appendChild(document.createElement("span"));
+                    difference--;
+                }
+                el.appendChild(frag);
+            } else if(difference < 0) {
+                while(difference < 0) {
+                    el.removeChild(el.firstChild);
+                    difference++;
+                }
+            }
+        }
+
+        let append_line_numbers = function(id) {
+            let ta = document.getElementById(id);
+            let el = document.createElement('div');
+            ta.parentNode.insertBefore(el, ta);
+            el.className = "line-numbers";
+            el.innerHTML = "<span></span>";
+
+            ta.onpropertychange = ta.oninput = ta.onchange = ta.onkeydown = ta.onkeyup = function(ta, el) {
+                return function() {  update_line_numbers(ta, el);  }
+            }(ta, el);
+            ta.onchange = ta.onmousewheel = ta.onscroll = function(ta, el) {
+                return function(e) {  el.scrollTop = ta.scrollTop;  }
+            }(ta, el);
+        }
+        append_line_numbers("load-code");
+        append_line_numbers("update-code");
+    </script>
     <script type="text/javascript">
         let tape = new Uint8Array(1e4);
         let load_code = document.getElementById("load-code");
@@ -198,86 +311,94 @@
             document.body.removeChild(el);
         }
 
-        if("applicationCache" in window) {
-            let appCache = window.applicationCache;
-            if(appCache.status === 1 || appCache.status > 3) appCache.update();
-            appCache.addEventListener("updateready", function(e) {
-                if(appCache.status == appCache.UPDATEREADY) {
-                    // Browser downloaded a new app cache.
-                    console.info("new cache!");
-                    appCache.swapCache();
-                } else {
-                    // Manifest didn't change.
-                }
-            }, false);
-        }
-
         let example_codes = {
-            "Simple sample":
-`{>309}         move 309 cells to the right
-[-]            clear the main cell
->              move to 'temp' cell
-++++,          get the input value of the 'A' key (id of 4)
-[              if up arrow is being pressed (value of 1)
-    < ++++     move and quadruple value from
-    > -        2nd cell to the 1st cell
-]
-.              update canvas`,
-            "Happy face, sad face":
-`{>157}(157)[-]  >    (158)[-]
-{>26} (184)[-] {>26} (210)[-]
-{>19} (229)[-]  >    (230)[-]
-{>5}  (235)[-] {>25} (260)[-]
-{>25} (285)[-] {>25} (310)[-]
-{>19} (329)[-]  >    (330)[-]
-{>5}  (335)[-] {>25} (360)[-]
-{>24} (384)[-] {>23} (407)[-]
- >    (408)[-] {<408}(  0)[-]
-
-{>160}(160)[-]  >    (161)[-]
-{>23} (184)[-] {>24} (208)[-]
-{>21} (229)[-]  >    (230)[-]
-{>3}  (233)[-] {>25} (258)[-]
-{>25} (283)[-] {>25} (308)[-]
-{>21} (329)[-]  >    (330)[-]
-{>3}  (333)[-] {>25} (358)[-]
-{>26} (384)[-] {>26} (410)[-]
- >    (411)[-] {<411}(  0)[-]
-{>500}+{<500}
-
-++++, [
-    {>157}(157)[-]+   >    (158)[-]+
-    {>26} (184)[-]+  {>26} (210)[-]+
-    {>19} (229)[-]+   >    (230)[-]+
-    {>5}  (235)[-]+  {>25} (260)[-]+
-    {>25} (285)[-]+  {>25} (310)[-]+
-    {>19} (329)[-]+   >    (330)[-]+
-    {>5}  (335)[-]+  {>25} (360)[-]+
-    {>24} (384)[-]+  {>23} (407)[-]+
-     >    (408)[-]+  {<408}(  0)[-]
-    {>500}[-]{<500}
-]
-{>500} [
-    {<500}
-    {>160}(160)[-]++  >    (161)[-]++
-    {>23} (184)[-]++ {>24} (208)[-]++
-    {>21} (229)[-]++  >    (230)[-]++
-    {>3}  (233)[-]++ {>25} (258)[-]++
-    {>25} (283)[-]++ {>25} (308)[-]++
-    {>21} (329)[-]++  >    (330)[-]++
-    {>3}  (333)[-]++ {>25} (358)[-]++
-    {>26} (384)[-]++ {>26} (410)[-]++
-     >    (411)[-]++ {<411}(  0)[-]
-    {>500}[-]{<500}
-]
-.`
+            "Simple sample": [
+                [ "" ],
+                [
+                    "{>309}         move 309 cells to the right",
+                    "[-]            clear the main cell",
+                    ">              move to 'temp' cell",
+                    "++++,          get the input value of the 'A' key (id of 4)",
+                    "[              if up arrow is being pressed (value of 1)",
+                    "    < ++++     move and quadruple value from",
+                    "    > -        2nd cell to the 1st cell",
+                    "]",
+                    ".              update canvas"
+                ]
+            ],
+            "Happy face, sad face": [
+                [ "" ],
+                [
+                    "{>157}(157)[-]  >    (158)[-]",
+                    "{>26} (184)[-] {>26} (210)[-]",
+                    "{>19} (229)[-]  >    (230)[-]",
+                    "{>5}  (235)[-] {>25} (260)[-]",
+                    "{>25} (285)[-] {>25} (310)[-]",
+                    "{>19} (329)[-]  >    (330)[-]",
+                    "{>5}  (335)[-] {>25} (360)[-]",
+                    "{>24} (384)[-] {>23} (407)[-]",
+                    " >    (408)[-] {<408}(  0)[-]",
+                    "",
+                    "{>160}(160)[-]  >    (161)[-]",
+                    "{>23} (184)[-] {>24} (208)[-]",
+                    "{>21} (229)[-]  >    (230)[-]",
+                    "{>3}  (233)[-] {>25} (258)[-]",
+                    "{>25} (283)[-] {>25} (308)[-]",
+                    "{>21} (329)[-]  >    (330)[-]",
+                    "{>3}  (333)[-] {>25} (358)[-]",
+                    "{>26} (384)[-] {>26} (410)[-]",
+                    " >    (411)[-] {<411}(  0)[-]",
+                    "{>500}+{<500}",
+                    "",
+                    "++++, [",
+                    "    {>157}(157)[-]+   >    (158)[-]+",
+                    "    {>26} (184)[-]+  {>26} (210)[-]+",
+                    "    {>19} (229)[-]+   >    (230)[-]+",
+                    "    {>5}  (235)[-]+  {>25} (260)[-]+",
+                    "    {>25} (285)[-]+  {>25} (310)[-]+",
+                    "    {>19} (329)[-]+   >    (330)[-]+",
+                    "    {>5}  (335)[-]+  {>25} (360)[-]+",
+                    "    {>24} (384)[-]+  {>23} (407)[-]+",
+                    "     >    (408)[-]+  {<408}(  0)[-]",
+                    "    {>500}[-]{<500}",
+                    "]",
+                    "{>500} [",
+                    "    {<500}",
+                    "    {>160}(160)[-]++  >    (161)[-]++",
+                    "    {>23} (184)[-]++ {>24} (208)[-]++",
+                    "    {>21} (229)[-]++  >    (230)[-]++",
+                    "    {>3}  (233)[-]++ {>25} (258)[-]++",
+                    "    {>25} (283)[-]++ {>25} (308)[-]++",
+                    "    {>21} (329)[-]++  >    (330)[-]++",
+                    "    {>3}  (333)[-]++ {>25} (358)[-]++",
+                    "    {>26} (384)[-]++ {>26} (410)[-]++",
+                    "     >    (411)[-]++ {<411}(  0)[-]",
+                    "    {>500}[-]{<500}",
+                    "]",
+                    "."
+                ]
+            ]
         };
+
         for(let i in example_codes) {
             let el = document.createElement("button");
+            el.className = "clickable";
             el.innerText = i;
             el.onclick= function(arg) {
                 return function() {
-                    update_code.value = example_codes[arg];
+                    let code = example_codes[arg];
+                    let t, j;
+
+                    t = "", j = 0;
+                    while(j < code[0].length) t += code[0][j] + "\r\n", j++;
+                    load_code.value = t.slice(0, -2) || "";
+                    update_line_numbers(load_code, load_code.previousElementSibling);
+
+                    t = "", j = 0;
+                    while(j < code[1].length) t += code[1][j] + "\r\n", j++;
+                    update_code.value = t.slice(0, -2) || "";
+                    update_line_numbers(update_code, update_code.previousElementSibling);
+
                     set_text("status", "Loaded '" + arg + "'");
                 }
             }(i);

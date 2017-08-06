@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<html lang="en" manifest="bf.appcache">
+<html lang="en">
     <meta charset="utf-8"/>
     <title> Game - Counterintuitive yet Unique Brainfuck Engine </title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -174,20 +174,6 @@
             if("isTrusted" in e && !e.isTrusted) return;
             mse.c = 0;
         });
-
-        if("applicationCache" in window) {
-            let appCache = window.applicationCache;
-            if(appCache.status === 1 || appCache.status > 3) appCache.update();
-            appCache.addEventListener("updateready", function(e) {
-                if(appCache.status == appCache.UPDATEREADY) {
-                    // Browser downloaded a new app cache.
-                    console.info("new cache!");
-                    appCache.swapCache();
-                } else {
-                    // Manifest didn't change.
-                }
-            }, false);
-        }
     </script>
 </body>
 </html>
