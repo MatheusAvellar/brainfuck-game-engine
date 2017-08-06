@@ -2,7 +2,7 @@ const {ipcMain, app, BrowserWindow} = require("electron");
 const path = require("path");
 const url = require("url");
 
-const DEBUG = true;
+const DEBUG = false;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -70,7 +70,7 @@ let createWindow = function() {
             game_window.once("ready-to-show", () => {
                 game_window.show();
                 game_window.focus();
-                game_window.webContents.send("tape", arg);
+                game_window.webContents.send("tape-and-code", arg);
                 if(DEBUG) game_window.webContents.openDevTools();
             });
 
@@ -81,6 +81,7 @@ let createWindow = function() {
             }));
             event.returnValue = "sent";
         } else {
+            game_window.webContents.send("tape-and-code", arg);
             game_window.focus();
         }
     });

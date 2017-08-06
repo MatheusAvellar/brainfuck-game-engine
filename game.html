@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
-<head lang="en">
+<html lang="en" manifest="bf.appcache">
     <meta charset="utf-8"/>
-    <title> Brainfuck Game Engine - Game </title>
+    <title> Game - Counterintuitive yet Unique Brainfuck Engine </title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <style type="text/css">
         @import url(https://fonts.googleapis.com/css?family=Roboto);
@@ -40,44 +40,153 @@
 <body onload="init();">
     <canvas id="game"></canvas>
     <script type="text/javascript">
+        const DEBUG = false;
+
         let canvas = document.getElementById("game");
         canvas.width = 800;
-        canvas.height = 608;
+        canvas.height = 600;
         let ctx = canvas.getContext("2d");
-        let tape;
+        let tape = new Uint8Array(1e4);
         let timeout;
-        let loaded = false;
+        let paused = false;
+        let update_code = "no code";
 
         if("require" in window) {
-            require("electron").ipcRenderer.on("tape", (event, arg) => {
-                tape = arg;
+            require("electron").ipcRenderer.on("tape-and-code", (event, arg) => {
+                paused = true;
+                if("update" in arg && arg.update != "") {
+                    update_code = new Function("", arg.update);
+                }
+                let i = arg.tape.length;
+                while(i--) tape[i] = arg.tape[i];
+
+                paused = false;
+                console.log("received");
             });
         }
+
+        let key = {  u: 0, d: 0, l: 0, r: 0, a: 0, s: 0  }
+        let mse = {  x: 0, y: 0, c: 0  }
 
         let init = function() {
             update();
         }
 
+        let color = [
+            "#333",
+            "#ccc",
+            "#fff",
+            "#c33",
+            "#3c3",
+            "#33c",
+            ""
+        ];
+
         let update = function() {
-            ctx.fillStyle = "#ffffff";
+            ctx.fillStyle = color[2];
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            if(tape) {
-                if(!loaded) loaded = true;
-                ctx.fillStyle = "#0e0e0e";
+            if(paused) {
+                ctx.fillStyle = color[0];
+                ctx.font = "20px Roboto";
+                ctx.fillText("Receiving new code", canvas.width / 2 - 45, canvas.height / 2);
+            } else if(update_code !== "no code") {
+                update_code();
+                ctx.fillStyle = color[0];
                 for (let i = 0, l = 25; i  < l; i++) {
                     for (let j = 0, k = 19; j < k; j++) {
-                        if(tape[i*25 + j] >= 1) {
+                        let current_cell = tape[i*25 + j];
+                        if (current_cell % color.length >= 1) {
+                            ctx.fillStyle = color[current_cell % color.length - 1];
                             ctx.fillRect(i * 32, j * 32, 32, 32);
                         }
                     }
                 }
             } else {
-                ctx.fillStyle = "#0e0e0e";
+                ctx.fillStyle = color[0];
                 ctx.font = "20px Roboto";
                 ctx.fillText("Loading...", canvas.width / 2 - 45, canvas.height / 2);
             }
-            timeout = setTimeout(update, 500);
+            timeout = setTimeout(update, 30);
+        }
+
+        let add_event = window.addEventListener
+            ? function(obj, evtname, func) {
+                if(obj instanceof Array)
+                    for(var i = 0; i < obj.length; i++)
+                        obj[i].addEventListener(evtname, func, false);
+                else
+                    obj.addEventListener(evtname, func, false);
+            }
+            : function(obj, evtname, func) {
+                if(obj instanceof Array)
+                    for(var i = 0; i < obj.length; i++)
+                        obj[i].attachEvent("on" + evtname, func);
+                else
+                    obj.attachEvent("on" + evtname, func);
+            };
+
+        add_event(document, "keydown", function(e) {
+            if("isTrusted" in e && !e.isTrusted) return;
+            if(e.keyCode == 37 || e.which == 37 || e.key == "ArrowLeft" || e.code == "ArrowLeft")
+                key.l = 1;
+            if(e.keyCode == 38 || e.which == 38 || e.key == "ArrowUp" || e.code == "ArrowUp")
+                key.u = 1;
+            if(e.keyCode == 39 || e.which == 39 || e.key == "ArrowRight" || e.code == "ArrowRight")
+                key.r = 1;
+            if(e.keyCode == 40 || e.which == 40 || e.key == "ArrowDown" || e.code == "ArrowDown")
+                key.d = 1;
+            if(e.keyCode == 65 || e.which == 65 || e.key == "a" || e.code == "KeyA")
+                key.a = 1;
+            if(e.keyCode == 83 || e.which == 83 || e.key == "s" || e.code == "KeyS")
+                key.s = 1;
+        });
+
+        add_event(document, "keyup", function(e) {
+            if("isTrusted" in e && !e.isTrusted) return;
+            if(e.keyCode == 37 || e.which == 37 || e.key == "ArrowLeft" || e.code == "ArrowLeft")
+                key.l = 0;
+            if(e.keyCode == 38 || e.which == 38 || e.key == "ArrowUp" || e.code == "ArrowUp")
+                key.u = 0;
+            if(e.keyCode == 39 || e.which == 39 || e.key == "ArrowRight" || e.code == "ArrowRight")
+                key.r = 0;
+            if(e.keyCode == 40 || e.which == 40 || e.key == "ArrowDown" || e.code == "ArrowDown")
+                key.d = 0;
+            if(e.keyCode == 65 || e.which == 65 || e.key == "a" || e.code == "KeyA")
+                key.a = 0;
+            if(e.keyCode == 83 || e.which == 83 || e.key == "s" || e.code == "KeyS")
+                key.s = 0;
+        });
+
+        add_event(canvas, "mousemove", function(e) {
+            if("isTrusted" in e && !e.isTrusted) return;
+            mse.x = ~~(e.offsetX/32);
+            mse.y = ~~(e.offsetY/32);
+            if(DEBUG) console.log(mse.x*25+mse.y);
+        });
+
+        add_event(canvas, "mousedown", function(e) {
+            if("isTrusted" in e && !e.isTrusted) return;
+            mse.c = 1;
+        });
+
+        add_event(canvas, "mouseup", function(e) {
+            if("isTrusted" in e && !e.isTrusted) return;
+            mse.c = 0;
+        });
+
+        if("applicationCache" in window) {
+            let appCache = window.applicationCache;
+            if(appCache.status === 1 || appCache.status > 3) appCache.update();
+            appCache.addEventListener("updateready", function(e) {
+                if(appCache.status == appCache.UPDATEREADY) {
+                    // Browser downloaded a new app cache.
+                    console.info("new cache!");
+                    appCache.swapCache();
+                } else {
+                    // Manifest didn't change.
+                }
+            }, false);
         }
     </script>
 </body>

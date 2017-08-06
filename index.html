@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
-<head lang="en">
+<html lang="en" manifest="bf.appcache">
     <meta charset="utf-8"/>
-    <title> Brainfuck Game Engine </title>
+    <title> Counterintuitive yet Unique Brainfuck Engine </title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <style type="text/css">
-        @import url(https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono);
+        @import url(https://fonts.googleapis.com/css?family=Roboto);
+        @import url(https://fonts.googleapis.com/css?family=Roboto+Mono);
 
         * {
             margin: 0;
@@ -27,100 +28,26 @@
         section {
             display: block;
             padding: 30px;
-        }
-        section:first-child {
-            padding: 30px 30px 0;
-        }
-        section, #tape {
             text-align: center;
-        }
-        #tape {
-            overflow-x: auto;
-            white-space: nowrap;
-            margin-top: 30px;
-        }
-        #tape::after {
-            content: "\22EF";
-            font-size: 16px;
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            text-align: center;
-            line-height: 40px;
-            color: gray;
-            user-select: none;
-            vertical-align: bottom;
-        }
-        #system-tape li, #tape li {
-            position: relative;
-            font-size: 16px;
-            display: inline-block;
-            border: 1px solid #aeaeae;
-            width: 40px;
-            height: 40px;
-            text-align: center;
-            line-height: 40px;
-            border-right: none;
-            color: gray;
-            background-color: #fefefe;
-            user-select: none;
-        }
-        #system-tape li:last-of-type, #tape li:last-of-type {
-            border-right: 1px solid #aeaeae;
-        }
-        #system-tape li {
-            border-color: cornflowerblue;
-            color: cornflowerblue;
-        }
-        #system-tape li::after, #tape li::after {
-            content: "#" attr(data-cellid);
-            font-size: 9px;
-            position: absolute;
-            left: 2px;
-            transform: translateY(-14px);
-        }
-        #tape li::after {
-            color: #aeaeae;
         }
         hr {
             height: 1px;
             background-color: #aeaeae;
             margin: 2px;
         }
-        p, textarea, label {
+        p, textarea {
             font-size: 16px;
         }
-        label {
-            user-select: none;
-        }
-        .key-label {
-            color: gray;
-            position: absolute;
-            transform: translateX(-25px) translateY(40px);
-            font-family: "Roboto Mono", monospace;
-        }
-        .tape-label {
-            position: absolute;
-            transform: translateY(-16px);
-            font-size: 12px;
-        }
-        .tape-label.system {
-            color: cornflowerblue;
-        }
-        .tape-label.user {
-            color: gray;
-        }
-        textarea {
+        textarea, #sample-code {
             font-family: "Roboto Mono", monospace;
             resize: none;
             width: 50%;
-            height: 325px;
             border: 1px solid #aeaeae;
-            padding: 10px;
+            padding: 15px 10px 10px;
             word-break: break-all;
-        }
-        textarea:first-of-type {
-            border-right: none;
+            width: 100%;
+            height: 600px;
+            background-color: #fff;
         }
         button {
             cursor: pointer;
@@ -132,11 +59,14 @@
             background-color: #b0ccff;
             box-shadow: 0 3px 0 cornflowerblue;
             transition: all .1s ease;
-            margin: 1px;
+            margin: 5px;
         }
         button:active {
             transform: translateY(3px);
             box-shadow: 0 0px 0 cornflowerblue;
+        }
+        #run {
+            margin: .5px;
         }
         span {
             font-size: 12px;
@@ -145,53 +75,121 @@
             font-size: 16px;
             font-family: "Roboto Mono", monospace;
             white-space: pre;
+            padding: 15px;
+            background-color: #cce;
+            color: #333;
+            height: 50px
+        }
+        #tabs {
+            padding: 0;
+            text-align: left;
+        }
+        #tabs > div {
+            cursor: default;
+            padding-left: 10px;
+            border: 1px solid #aeaeae;
+            display: inline-block;
+            font-family: "Roboto Mono", monospace;
+            width: 200px;
+            color: #666;
+            font-size: 16px;
+            height: 50px;
+            line-height: 50px;
+            user-select: none;
+            background-color: #f6f6f6;
+            transform: translateY(1px);
+            position: relative;
+        }
+        #tabs > div:not(:last-of-type) {
+            border-right: 0;
+        }
+        #tabs > div.selected {
+            border-bottom: 0;
+            color: #333;
+            background-color: #fff;
+        }
+        [data-id] ~ [data-id], #dl-guide {
+            display: none;
+        }
+        [data-id="1"].selected ~ [data-id="1"],
+        [data-id="2"].selected ~ [data-id="2"],
+        [data-id="3"].selected ~ [data-id="3"] {
+            display: block;
+        }
+        [data-id]:not(.selected) .download {
+            pointer-events: none;
+            opacity: .3;
+        }
+        .download {
+            position: absolute;
+            right: 10px;
+            top: 13px;
+            fill: #aeaeae;
+            cursor: pointer;
+            width: 24px;
+        }
+        .download:hover {
+            fill: #333;
         }
     </style>
 </head>
 <body>
+    <svg id="dl-guide" viewBox="0 0 24 24">
+        <defs>
+            <path id="dl" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+        </defs>
+    </svg>
     <main>
         <section>
-            <ul id="system-tape">
-                <label class="tape-label system"> Input section </label>
-                <li class="system-cell" data-cellid="0">0</li><label class="key-label">&larr;</label>
-                <li class="system-cell" data-cellid="1">0</li><label class="key-label">&uarr;</label>
-                <li class="system-cell" data-cellid="2">0</li><label class="key-label">&rarr;</label>
-                <li class="system-cell" data-cellid="3">0</li><label class="key-label">&darr;</label>
-                <li class="system-cell" data-cellid="4">0</li><label class="key-label">A</label>
-                <li class="system-cell" data-cellid="5">0</li><label class="key-label">S</label>
-            </ul>
-            <ul id="tape">
-                <label class="tape-label user"> Data section</label>
-                <li data-cellid="6">0</li>
-                <li data-cellid="7">0</li>
-                <li data-cellid="8">0</li>
-                <li data-cellid="9">0</li>
-                <li data-cellid="10">0</li>
-                <li data-cellid="11">0</li>
-                <li data-cellid="12">0</li>
-                <li data-cellid="13">0</li>
-                <li data-cellid="14">0</li>
-                <li data-cellid="15">0</li>
-                <li data-cellid="16">0</li>
-                <li data-cellid="17">0</li>
-            </ul>
+            <button id="run"> Run </button>
         </section>
-        <section>
-            <button id="run">Run</button>
-            <button id="stop">Stop</button>
+        <div id="status"> Welcome to CUBE, the Counterintuitive yet Unique Brainfuck Engine </div>
+        <section id="tabs">
+            <div onclick="change_tab(this);" data-id="1" class="selected">
+                load.bf
+                <svg class="download" viewBox="0 0 24 24" onclick="download_file('load-code','load.bf');">
+                    <use xlink:href="#dl"/>
+                </svg>
+            </div>
+            <div onclick="change_tab(this);" data-id="2">
+                update.bf
+                <svg class="download" viewBox="0 0 24 24" onclick="download_file('update-code','update.bf');">
+                    <use xlink:href="#dl"/>
+                </svg>
+            </div>
+            <div onclick="change_tab(this);" data-id="3"> sample codes </div>
+            <!-- -->
+            <textarea
+                id="load-code"
+                data-id="1"
+                spellcheck="false"
+                placeholder="load.bf&#10;&#10;Code to be run upon startup.&#10;Runs only once."
+            ></textarea>
+            <textarea
+                id="update-code"
+                data-id="2"
+                spellcheck="false"
+                placeholder="update.bf&#10;&#10;Code to be run during the game.&#10;Runs on every frame."
+            ></textarea>
+            <section id="sample-code" data-id="3"></section>
         </section>
-        <div id="status"></div>
-        <button hidden class="download" onclick="download_file('load-code','load.bf');"> load.bf </button>
-        <button hidden class="download" onclick="download_file('update-code','update.bf');"> update.bf </button>
-        <br/>
-        <textarea spellcheck="false" id="load-code" placeholder="load.bf&#10;&#10;Code to be run upon startup.&#10;Runs only once."></textarea>
-        <textarea spellcheck="false" id="update-code" placeholder="update.bf&#10;&#10;Code to be run during the game.&#10;Runs on every frame."></textarea>
     </main>
-    <script type="text/javascript" src="./copy.sh.brainfuck.js"></script>
     <script type="text/javascript">
+        let tape = new Uint8Array(1e4);
+        let load_code = document.getElementById("load-code");
+        let update_code = document.getElementById("update-code");
+        let sample_code = document.getElementById("sample-code");
+
+        let change_tab = function(el) {
+            if(el.className != "selected") {
+                document.querySelector(".selected").className = "";
+                el.className = "selected";
+            }
+        }
+
         let download_file = function(id, filename) {
-            var el = document.createElement("a");
-            var editor = document.getElementById(id);
+            let el = document.createElement("a");
+            let editor = document.getElementById(id);
             el.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(editor.value));
             el.setAttribute("download", filename);
             el.style.display = "none";
@@ -200,10 +198,92 @@
             document.body.removeChild(el);
         }
 
-        let done = function() {
-            const {ipcRenderer} = require("electron");
-            console.log(ipcRenderer.sendSync("run-game", tape));
+        if("applicationCache" in window) {
+            let appCache = window.applicationCache;
+            if(appCache.status === 1 || appCache.status > 3) appCache.update();
+            appCache.addEventListener("updateready", function(e) {
+                if(appCache.status == appCache.UPDATEREADY) {
+                    // Browser downloaded a new app cache.
+                    console.info("new cache!");
+                    appCache.swapCache();
+                } else {
+                    // Manifest didn't change.
+                }
+            }, false);
+        }
+
+        let example_codes = {
+            "Simple sample":
+`{>309}         move 309 cells to the right
+[-]            clear the main cell
+>              move to 'temp' cell
+++++,          get the input value of the 'A' key (id of 4)
+[              if up arrow is being pressed (value of 1)
+    < ++++     move and quadruple value from
+    > -        2nd cell to the 1st cell
+]
+.              update canvas`,
+            "Happy face, sad face":
+`{>157}(157)[-]  >    (158)[-]
+{>26} (184)[-] {>26} (210)[-]
+{>19} (229)[-]  >    (230)[-]
+{>5}  (235)[-] {>25} (260)[-]
+{>25} (285)[-] {>25} (310)[-]
+{>19} (329)[-]  >    (330)[-]
+{>5}  (335)[-] {>25} (360)[-]
+{>24} (384)[-] {>23} (407)[-]
+ >    (408)[-] {<408}(  0)[-]
+
+{>160}(160)[-]  >    (161)[-]
+{>23} (184)[-] {>24} (208)[-]
+{>21} (229)[-]  >    (230)[-]
+{>3}  (233)[-] {>25} (258)[-]
+{>25} (283)[-] {>25} (308)[-]
+{>21} (329)[-]  >    (330)[-]
+{>3}  (333)[-] {>25} (358)[-]
+{>26} (384)[-] {>26} (410)[-]
+ >    (411)[-] {<411}(  0)[-]
+{>500}+{<500}
+
+++++, [
+    {>157}(157)[-]+   >    (158)[-]+
+    {>26} (184)[-]+  {>26} (210)[-]+
+    {>19} (229)[-]+   >    (230)[-]+
+    {>5}  (235)[-]+  {>25} (260)[-]+
+    {>25} (285)[-]+  {>25} (310)[-]+
+    {>19} (329)[-]+   >    (330)[-]+
+    {>5}  (335)[-]+  {>25} (360)[-]+
+    {>24} (384)[-]+  {>23} (407)[-]+
+     >    (408)[-]+  {<408}(  0)[-]
+    {>500}[-]{<500}
+]
+{>500} [
+    {<500}
+    {>160}(160)[-]++  >    (161)[-]++
+    {>23} (184)[-]++ {>24} (208)[-]++
+    {>21} (229)[-]++  >    (230)[-]++
+    {>3}  (233)[-]++ {>25} (258)[-]++
+    {>25} (283)[-]++ {>25} (308)[-]++
+    {>21} (329)[-]++  >    (330)[-]++
+    {>3}  (333)[-]++ {>25} (358)[-]++
+    {>26} (384)[-]++ {>26} (410)[-]++
+     >    (411)[-]++ {<411}(  0)[-]
+    {>500}[-]{<500}
+]
+.`
+        };
+        for(let i in example_codes) {
+            let el = document.createElement("button");
+            el.innerText = i;
+            el.onclick= function(arg) {
+                return function() {
+                    update_code.value = example_codes[arg];
+                    set_text("status", "Loaded '" + arg + "'");
+                }
+            }(i);
+            sample_code.appendChild(el);
         }
     </script>
+    <script type="text/javascript" src="./brainfuck.js"></script>
 </body>
 </html>
