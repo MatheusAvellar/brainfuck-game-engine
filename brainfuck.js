@@ -462,24 +462,3 @@ function get_line_char(text, index) {
 
     return result;
 }
-
-/*
-0. Left arrow             => (0 = unpressed, 1 = pressed)
-1. Up arrow               => (0 = unpressed, 1 = pressed)
-2. Right arrow            => (0 = unpressed, 1 = pressed)
-3. Down arrow             => (0 = unpressed, 1 = pressed)
-4. 'A' key                => (0 = unpressed, 1 = pressed)
-5. 'S' key                => (0 = unpressed, 1 = pressed)
-6. X coordinate of mouse  => (0 to 25)
-7. Y coordinate of mouse  => (0 to 19)
-8. Mouse click            => (0 = unpressed, 1 = pressed)
-
-0 - No change (shows the background color)
-1 - Black (#333)
-2 - Gray  (#ccc)
-3 - White (#fff)
-4 - Red   (#c33)
-5 - Green (#3c3)
-6 - Blue  (#33c)
-
-*/

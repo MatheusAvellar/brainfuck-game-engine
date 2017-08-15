@@ -162,17 +162,19 @@
             if("isTrusted" in e && !e.isTrusted) return;
             mse.x = ~~(e.offsetX/32);
             mse.y = ~~(e.offsetY/32);
-            if(DEBUG) console.log(mse.x*25+mse.y);
+            if(DEBUG) console.log(mse.x, mse.y, mse.x*25+mse.y);
         });
 
         add_event(canvas, "mousedown", function(e) {
             if("isTrusted" in e && !e.isTrusted) return;
             mse.c = 1;
+            if(DEBUG) console.log("PRESSED");
         });
 
         add_event(canvas, "mouseup", function(e) {
             if("isTrusted" in e && !e.isTrusted) return;
             mse.c = 0;
+            if(DEBUG) console.log("UNPRESSED");
         });
     </script>
 </body>

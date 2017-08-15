@@ -4,6 +4,7 @@
     <meta charset="utf-8"/>
     <title> Counterintuitive yet Unique Brainfuck Engine </title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" type="text/css" href="tln.min.css"/>
     <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,400i,700,700i|Roboto:400,400i,700,700i" rel="stylesheet">
     <style type="text/css">
         * {
@@ -15,35 +16,29 @@
             vertical-align: middle;
             list-style: none;
         }
-        body {
+        html, body {
             font-family: "Roboto", sans-serif;
             background-color: #efefef;
             overflow: hidden;
-            width: 800px;
-            height: 800px;
+            width: 100%;
+            height: 100%;
+            min-width: 100%;
+            min-height: 100%;
+        }
+        main {
+            height: 100%;
         }
         .part {
             display: block;
             padding: 30px;
             text-align: center;
         }
-        .codearea {
-            font-size: 16px;
-            line-height: 1.5;
-            width: 94%;
-            display: inline-block;
-            padding: 10px;
-        }
         #sample-code {
             width: 100%;
             padding: 15px 10px 10px;
-        }
-        .codearea, #sample-code {
             font-family: "Roboto Mono", monospace;
-            resize: none;
             border: 1px solid #aeaeae;
-            word-break: break-all;
-            height: 600px;
+            height: 100%;
             background-color: #fff;
         }
         .clickable {
@@ -78,6 +73,7 @@
             padding: 0;
             font-size: 0;
             text-align: left;
+            height: calc(100% - 150px);
         }
         #tabs [data-tab]:first-child {
             margin-left: 48px;
@@ -109,6 +105,9 @@
         [data-id] ~ [data-id], #dl-guide {
             display: none;
         }
+        [data-id] ~ [data-id] {
+            height: calc(100% - 50px);
+        }
         [data-id="1"].selected ~ [data-id="1"],
         [data-id="2"].selected ~ [data-id="2"],
         [data-id="3"].selected ~ [data-id="3"],
@@ -130,30 +129,6 @@
         .download:hover {
             fill: #333;
         }
-        .line-numbers {
-            width: 6%;
-            padding: 11px 5px;
-            height: 600px;
-            word-break: break-all;
-            overflow: hidden;
-            display: inline-block;
-            counter-reset: line;
-        }
-        .line-numbers span {
-            width: 100%;
-            display: block;
-            text-align: right;
-            padding: 0px;
-            line-height: 1.5;
-            font-size: 16px;
-            color: #aeaeae;
-        }
-        .line-numbers span::before {
-            counter-increment: line;
-            content: counter(line);
-            font-size: 16px;
-            user-select: none;
-        }
         #docs {
             overflow-y: auto;
             text-align: left;
@@ -161,7 +136,7 @@
             background-color: #fff;
             padding: 15px;
             border-top: 1px solid #aeaeae;
-            height: 600px;
+            height: calc(100% - 50px);
         }
         #docs p, #docs pre, #docs code {
             font-size: 16px;
@@ -207,8 +182,8 @@
                     <use xlink:href="#dl"/>
                 </svg>
             </div>
-            <div data-tab onclick="change_tab(this);" data-id="3"> sample codes </div>
-            <div data-tab onclick="change_tab(this);" data-id="4"> cheatsheet </div>
+            <div data-tab onclick="change_tab(this);" data-id="3"> cheatsheet </div>
+            <div data-tab onclick="change_tab(this);" data-id="4"> sample codes </div>
             <!-- -->
             <div data-id="1">
                 <textarea
@@ -226,8 +201,7 @@
                     placeholder="update.bf&#10;&#10;Code to be run during the game.&#10;Runs on every frame."
                 ></textarea>
             </div>
-            <section id="sample-code" class="part" data-id="3"></section>
-            <section id="docs" class="part" data-id="4">
+            <section id="docs" class="part" data-id="3">
                 <h2> Input (<code>,</code>) </h2>
 <pre>0 = Left arrow             => (0 = unpressed, 1 = pressed)
 1 = Up arrow               => (0 = unpressed, 1 = pressed)
@@ -247,47 +221,14 @@
 5 = Green (#3c3)
 6 = Blue  (#33c)</pre>
             </section>
+            <section id="sample-code" class="part" data-id="4"></section>
         </section>
     </main>
+    <script type="text/javascript" src="tln.min.js"></script>
     <script type="text/javascript">
-        let update_line_numbers = function(ta, el) {
-            let lines = ta.value.split("\n").length;
-            let child_count = el.children.length;
-            let difference = lines - child_count;
-
-            if(difference > 0) {
-                let frag = document.createDocumentFragment();
-                while(difference > 0) {
-                    frag.appendChild(document.createElement("span"));
-                    difference--;
-                }
-                el.appendChild(frag);
-            } else if(difference < 0) {
-                while(difference < 0) {
-                    el.removeChild(el.firstChild);
-                    difference++;
-                }
-            }
-        }
-
-        let append_line_numbers = function(id) {
-            let ta = document.getElementById(id);
-            let el = document.createElement('div');
-            ta.parentNode.insertBefore(el, ta);
-            el.className = "line-numbers";
-            el.innerHTML = "<span></span>";
-
-            ta.onpropertychange = ta.oninput = ta.onchange = ta.onkeydown = ta.onkeyup = function(ta, el) {
-                return function() {  update_line_numbers(ta, el);  }
-            }(ta, el);
-            ta.onchange = ta.onmousewheel = ta.onscroll = function(ta, el) {
-                return function(e) {  el.scrollTop = ta.scrollTop;  }
-            }(ta, el);
-        }
         append_line_numbers("load-code");
         append_line_numbers("update-code");
-    </script>
-    <script type="text/javascript">
+
         let tape = new Uint8Array(1e4);
         let load_code = document.getElementById("load-code");
         let update_code = document.getElementById("update-code");

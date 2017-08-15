@@ -64,6 +64,14 @@ Values wrap around, so a value of `7` would be equivalent to a `0` (background
 color), a value of `8` would be equivalent to a `1` (black), and so on.
 
 
+## Why
+
+To quote intergalactically famous fictional scientist and inventor Rick Sanchez,
+
+> The reason anyone would do this, if they could (which they can't), would be
+  because they could (which they can't)
+
+
 ## Credits
 
 As mentioned on the source code, full credits to **copy** for the initial code

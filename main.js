@@ -14,15 +14,17 @@ let createWindow = function() {
     main_window = new BrowserWindow({
         width: 800,
         height: 800,
+        minWidth: 800,
+        minHeight: 800,
         useContentSize: true,
         webPreferences: {
            experimentalFeatures: true
         },
         show: false,
-        resizable: false,
+        resizable: true,
         fullscreen: false,
         fullscreenable: false,
-        maximizable: false,
+        maximizable: true,
         autoHideMenuBar: true
     });
 
