@@ -19,8 +19,8 @@ Insert funny 'an image is worth a thousand words' joke here, or something.
 ## Development
 
 The game code is separated in two files: `load.bf` and `update.bf`.
-The first is only run only once, as to load a state to the tape, while
-the latter runs on every frame.
+The first is run only once, as to load a state to the tape, while the latter
+runs on every frame.
 
 
 ## User input
@@ -44,10 +44,6 @@ Valid values are listed below:
 
 ## Output
 
-The 1st cell on the tape holds the value for the background color of the
-canvas. Value to color equivalences are the listed below. Default (`0`)
-is white.
-
 The game screen is drawn according to the first *25 × 19 =* **475**
 cells in the program tape after the first cell. They are equivalent to a grid
 on the canvas, where each value corresponds to a color:
@@ -62,6 +58,9 @@ on the canvas, where each value corresponds to a color:
 
 Values wrap around, so a value of `7` would be equivalent to a `0` (background
 color), a value of `8` would be equivalent to a `1` (black), and so on.
+
+Eventually, I'll figure out a way to allow people to change the default
+background color.
 
 
 ## Why
