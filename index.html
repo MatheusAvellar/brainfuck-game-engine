@@ -94,7 +94,7 @@
             transform: translateY(1px);
             position: relative;
         }
-        #tabs [data-tab]:not([data-id="4"]) {
+        #tabs [data-tab]:not([data-id="3"]) {
             border-right: 0;
         }
         #tabs [data-tab].selected {
@@ -102,7 +102,9 @@
             color: #333;
             background-color: #fff;
         }
-        [data-id] ~ [data-id], #dl-guide {
+        [data-id="3"].selected ~ #toolbox,
+        [data-id] ~ [data-id],
+        #dl-guide {
             display: none;
         }
         [data-id] ~ [data-id] {
@@ -110,24 +112,40 @@
         }
         [data-id="1"].selected ~ [data-id="1"],
         [data-id="2"].selected ~ [data-id="2"],
-        [data-id="3"].selected ~ [data-id="3"],
-        [data-id="4"].selected ~ [data-id="4"] {
+        [data-id="3"].selected ~ [data-id="3"] {
             display: block;
         }
-        [data-id]:not(.selected) .download {
+
+        #toolbox {
+            display: inline-block;
+            padding-left: 15px;
+        }
+        #toolbox button {
+            font-family: inherit;
+            padding: 5px 7px 5px 6px;
+            margin: 0 5px;
+            cursor: pointer;
+            background-color: #e0e0e0;
+        }
+
+        [data-id]:not(.selected) .download-file,
+        [data-id]:not(.selected) .open-file {
             pointer-events: none;
             opacity: .3;
         }
-        .download {
-            position: absolute;
-            right: 10px;
-            top: 13px;
-            fill: #aeaeae;
-            cursor: pointer;
-            width: 24px;
+        .download-file,.open-file {
+            fill: #a0a0a0;
+            width: 20px;
         }
-        .download:hover {
-            fill: #333;
+        #toolbox button:hover {
+            background-color: #d0d0d0;
+        }
+        #toolbox button:hover > .download-file,
+        #toolbox button:hover > .open-file {
+            fill: #707070;
+        }
+        .open-file {
+            right: 40px;
         }
         #docs {
             overflow-y: auto;
@@ -161,44 +179,50 @@
 <body>
     <svg id="dl-guide" viewBox="0 0 24 24">
         <defs>
-            <path id="dl" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
+            <path id="_get-file" d="M6,2C4.89,2 4,2.9 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,3.5L18.5,9H13M10.05,11.22L12.88,14.05L15,11.93V19H7.93L10.05,16.88L7.22,14.05" />
+            <path id="_send-file" d="M6,2C4.89,2 4,2.9 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,3.5L18.5,9H13M8.93,12.22H16V19.29L13.88,17.17L11.05,20L8.22,17.17L11.05,14.35" />
         </defs>
     </svg>
     <main>
         <section class="part">
             <button id="run" class="clickable"> Run </button>
         </section>
-        <div id="status"> Welcome to CUBE, the Counterintuitive yet Unique Brainfuck Engine </div>
+        <div id="status"> Welcome! </div>
         <section id="tabs" class="part">
-            <div data-tab onclick="change_tab(this);" data-id="1" class="selected">
-                load.bf
-                <svg class="download" viewBox="0 0 24 24" onclick="download_file('load-code','load.bf');">
-                    <use xlink:href="#dl"/>
-                </svg>
-            </div>
-            <div data-tab onclick="change_tab(this);" data-id="2">
-                update.bf
-                <svg class="download" viewBox="0 0 24 24" onclick="download_file('update-code','update.bf');">
-                    <use xlink:href="#dl"/>
-                </svg>
-            </div>
+            <div data-tab onclick="change_tab(this);" data-name="load.bc" data-id="1" class="selected"> load.bc </div>
+            <div data-tab onclick="change_tab(this);" data-name="update.bc" data-id="2"> update.bc </div>
             <div data-tab onclick="change_tab(this);" data-id="3"> cheatsheet </div>
-            <div data-tab onclick="change_tab(this);" data-id="4"> sample codes </div>
+            <div id="toolbox">
+                <button onclick="open_file();">
+                    <svg class="open-file" viewBox="0 0 24 24">
+                        <use xlink:href="#_get-file"/>
+                    </svg>
+                    Import file
+                </button>
+                <button onclick="download_file();">
+                    <svg class="download-file" viewBox="0 0 24 24">
+                        <use xlink:href="#_send-file"/>
+                    </svg>
+                    Export file
+                </button>
+            </div>
             <!-- -->
             <div data-id="1">
                 <textarea
                     id="load-code"
+                    data-file="load.bc"
                     class="codearea"
                     spellcheck="false"
-                    placeholder="load.bf&#10;&#10;Code to be run upon startup.&#10;Runs only once."
+                    placeholder="load.bc&#10;&#10;Code to be run upon startup.&#10;Runs only once."
                 ></textarea>
             </div>
             <div data-id="2">
                 <textarea
                     id="update-code"
+                    data-file="update.bc"
                     class="codearea"
                     spellcheck="false"
-                    placeholder="update.bf&#10;&#10;Code to be run during the game.&#10;Runs on every frame."
+                    placeholder="update.bc&#10;&#10;Code to be run during the game.&#10;Runs on every frame."
                 ></textarea>
             </div>
             <section id="docs" class="part" data-id="3">
@@ -221,7 +245,6 @@
 5 = Green (#3c3)
 6 = Blue  (#33c)</pre>
             </section>
-            <section id="sample-code" class="part" data-id="4"></section>
         </section>
     </main>
     <script type="text/javascript" src="tln.min.js"></script>
@@ -241,9 +264,31 @@
             }
         }
 
-        let download_file = function(id, filename) {
+        let give = function(up = "") {
+            if(up.length > 0) up += ", ";
+            up += "WHAT IS THIS";
+
+            throw up;
+        }
+
+        let download_file = function() {
+            let up = "";
             let el = document.createElement("a");
-            let editor = document.getElementById(id);
+            let current_file = document.querySelector(".selected");
+
+            if(current_file.length > 0) {
+                up = "Multiple selected elements";
+                return give(up);
+            }
+
+            let filename = current_file.dataset.name;
+            let editor = document.querySelector("[data-file='" + filename + "']");
+
+            if(!("value" in editor)) {
+                up = "Selected element is not a textarea";
+                return give(up);
+            }
+
             el.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(editor.value));
             el.setAttribute("download", filename);
             el.style.display = "none";
@@ -252,98 +297,43 @@
             document.body.removeChild(el);
         }
 
-        let example_codes = {
-            "Simple sample": [
-                [ "" ],
-                [
-                    "{>309}         move 309 cells to the right",
-                    "[-]            clear the main cell",
-                    ">              move to 'temp' cell",
-                    "++++,          get the input value of the 'A' key (id of 4)",
-                    "[              if up arrow is being pressed (value of 1)",
-                    "    < ++++     move and quadruple value from",
-                    "    > -        2nd cell to the 1st cell",
-                    "]",
-                    ".              update canvas"
-                ]
-            ],
-            "Happy face, sad face": [
-                [ "" ],
-                [
-                    "{>157}(157)[-]  >    (158)[-]",
-                    "{>26} (184)[-] {>26} (210)[-]",
-                    "{>19} (229)[-]  >    (230)[-]",
-                    "{>5}  (235)[-] {>25} (260)[-]",
-                    "{>25} (285)[-] {>25} (310)[-]",
-                    "{>19} (329)[-]  >    (330)[-]",
-                    "{>5}  (335)[-] {>25} (360)[-]",
-                    "{>24} (384)[-] {>23} (407)[-]",
-                    " >    (408)[-] {<408}(  0)[-]",
-                    "",
-                    "{>160}(160)[-]  >    (161)[-]",
-                    "{>23} (184)[-] {>24} (208)[-]",
-                    "{>21} (229)[-]  >    (230)[-]",
-                    "{>3}  (233)[-] {>25} (258)[-]",
-                    "{>25} (283)[-] {>25} (308)[-]",
-                    "{>21} (329)[-]  >    (330)[-]",
-                    "{>3}  (333)[-] {>25} (358)[-]",
-                    "{>26} (384)[-] {>26} (410)[-]",
-                    " >    (411)[-] {<411}(  0)[-]",
-                    "{>500}+{<500}",
-                    "",
-                    "++++, [",
-                    "    {>157}(157)[-]+   >    (158)[-]+",
-                    "    {>26} (184)[-]+  {>26} (210)[-]+",
-                    "    {>19} (229)[-]+   >    (230)[-]+",
-                    "    {>5}  (235)[-]+  {>25} (260)[-]+",
-                    "    {>25} (285)[-]+  {>25} (310)[-]+",
-                    "    {>19} (329)[-]+   >    (330)[-]+",
-                    "    {>5}  (335)[-]+  {>25} (360)[-]+",
-                    "    {>24} (384)[-]+  {>23} (407)[-]+",
-                    "     >    (408)[-]+  {<408}(  0)[-]",
-                    "    {>500}[-]{<500}",
-                    "]",
-                    "{>500} [",
-                    "    {<500}",
-                    "    {>160}(160)[-]++  >    (161)[-]++",
-                    "    {>23} (184)[-]++ {>24} (208)[-]++",
-                    "    {>21} (229)[-]++  >    (230)[-]++",
-                    "    {>3}  (233)[-]++ {>25} (258)[-]++",
-                    "    {>25} (283)[-]++ {>25} (308)[-]++",
-                    "    {>21} (329)[-]++  >    (330)[-]++",
-                    "    {>3}  (333)[-]++ {>25} (358)[-]++",
-                    "    {>26} (384)[-]++ {>26} (410)[-]++",
-                    "     >    (411)[-]++ {<411}(  0)[-]",
-                    "    {>500}[-]{<500}",
-                    "]",
-                    "."
-                ]
-            ]
-        };
+        let open_file = function() {
+            let up = "";
 
-        for(let i in example_codes) {
-            let el = document.createElement("button");
-            el.className = "clickable";
-            el.innerText = i;
-            el.onclick= function(arg) {
-                return function() {
-                    let code = example_codes[arg];
-                    let t, j;
-
-                    t = "", j = 0;
-                    while(j < code[0].length) t += code[0][j] + "\r\n", j++;
-                    load_code.value = t.slice(0, -2) || "";
-                    update_line_numbers(load_code, load_code.previousElementSibling);
-
-                    t = "", j = 0;
-                    while(j < code[1].length) t += code[1][j] + "\r\n", j++;
-                    update_code.value = t.slice(0, -2) || "";
-                    update_line_numbers(update_code, update_code.previousElementSibling);
-
-                    set_text("status", "Loaded '" + arg + "'");
+            let dialog = document.createElement("input");
+            dialog.setAttribute("type", "file");
+            dialog.style.display = "none";
+            document.body.appendChild(dialog);
+            dialog.onchange = function() {
+                if(this.files.length !== 1) {
+                    up = "No selected file";
+                    return give(up);
                 }
-            }(i);
-            sample_code.appendChild(el);
+                let reader = new FileReader();
+                reader.onloadend = function() {
+                    let current_file = document.querySelector(".selected");
+
+                    if(current_file == null) {
+                        up = "No selected elements";
+                        return give(up);
+                    } else if ("length" in current_file && current_file.length != 1) {
+                        up = "Multiple selected elements";
+                        return give(up);
+                    }
+                    let filename = current_file.dataset.name;
+                    let editor = document.querySelector("[data-file='" + filename + "']");
+                    if(editor == null) {
+                        up = "No editor found";
+                        return give(up);
+                    }
+                    editor.value = this.result;
+
+                    update_line_numbers(editor, editor.previousElementSibling);
+                }
+                reader.readAsText(this.files[0]);
+                document.body.removeChild(this);
+            }
+            dialog.click();
         }
     </script>
     <script type="text/javascript" src="./brainfuck.js"></script>

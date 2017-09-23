@@ -1,0 +1,9 @@
+{>309}         move 309 cells to the right
+[-]            clear the main cell
+>              move to 'temp' cell
+++++,          get the input value of the 'A' key (id of 4)
+[              if up arrow is being pressed (value of 1)
+    < ++++     move and quadruple value from
+    > -        2nd cell to the 1st cell
+]
+.              update canvas
