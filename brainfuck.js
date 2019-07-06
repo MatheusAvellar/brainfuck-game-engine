@@ -19,29 +19,31 @@ var HAS_WINDOW = COMPILED || typeof window !== "undefined";
 
 var run_button = document.getElementById("run");
 
-var $ = function(id) {
-    return document.getElementById(id);
-},
+var domLoaded;
 
-set_child = function(obj, new_child) {
+function $(id) {
+    return document.getElementById(id);
+}
+
+function set_child(obj, new_child) {
     while(obj.firstChild)
         obj.removeChild(obj.firstChild);
 
     obj.appendChild(new_child);
-},
+}
 
-set_text = function(id, text) {
+function set_text(id, text) {
     set_child($(id), document.createTextNode(text));
-},
+}
 
-number_format = function(num) {
+function number_format(num) {
     num = String(num);
     for(var length = num.length - 3; length > 0; length -= 3)
         num = num.substring(0, length) + "." + num.substring(length);
     return num;
-},
+}
 
-braincoitus = function(code) {
+function braincoitus(code) {
     let i, limit = 5e4;
     code = code.replace(/[^\{\}0-9\[\]\+\-\.\,\>\<]/g,"");
 
@@ -75,17 +77,15 @@ braincoitus = function(code) {
             code = code.replace("{" + operation + "}", new_str);
     }
     return code.replace(/[\{\}0-9]/g,"");
-},
+}
 
-done = function(code) {
-    require("electron").ipcRenderer.sendSync("run-game", {
+function done(code) {
+    start_game(code, tape);
+    /*require("electron").ipcRenderer.sendSync("run-game", {
         tape: tape,
         update: code
-    });
-},
-
-    domLoaded;
-
+    });*/
+}
 
 function main() {
     var cell_size = 8,
@@ -117,7 +117,6 @@ function main() {
         }
     });*/
 
-
     function handle_result(result) {
         if(result["s"]) {
             running = false;
@@ -126,7 +125,6 @@ function main() {
             stop_button.className = "inactive_button";
 
             if(result["s"] === -1) {
-                
                 //done();
             } else {
                 var text;
@@ -424,9 +422,8 @@ function run_bf(code, input_str, config) {
 
         var input = [];
 
-        for(i = input_str.length - 1; i >= 0; i--) {
+        for(i = input_str.length - 1; i >= 0; i--)
             input.push(input_str.charCodeAt(i));
-        }
 
         js_code_head = "'use strict';let _,o=[],c=0,p=0,j=0,t=0,";
         js_code_head += "m=new Uint" + config.cell_size + "Array(" + config.memory_size + ");"

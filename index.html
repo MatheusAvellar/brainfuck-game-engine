@@ -2,178 +2,195 @@
 <html>
 <html lang="en">
     <meta charset="utf-8"/>
-    <title> Counterintuitive yet Unique Brainfuck Engine </title>
+    <title> Brainfuck Game Engine </title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <link rel="stylesheet" type="text/css" href="tln.min.css"/>
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,400i,700,700i|Roboto:400,400i,700,700i" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono|Roboto+Condensed" rel="stylesheet">
     <style type="text/css">
-        * {
-            margin: 0;
-            border: 0;
-            padding: 0;
-            outline: 0;
-            box-sizing: border-box;
-            vertical-align: middle;
-            list-style: none;
-        }
-        html, body {
-            font-family: "Roboto", sans-serif;
-            background-color: #efefef;
-            overflow: hidden;
-            width: 100%;
-            height: 100%;
-            min-width: 100%;
-            min-height: 100%;
-        }
-        main {
-            height: 100%;
-        }
-        .part {
-            display: block;
-            padding: 30px;
-            text-align: center;
-        }
-        #sample-code {
-            width: 100%;
-            padding: 15px 10px 10px;
-            font-family: "Roboto Mono", monospace;
-            border: 1px solid #aeaeae;
-            height: 100%;
-            background-color: #fff;
-        }
-        .clickable {
-            cursor: pointer;
-            user-select: none;
-            border-radius: 1px;
-            font-family: "Roboto", sans-serif;
-            font-size: 16px;
-            padding: 10px 20px;
-            background-color: #b0ccff;
-            box-shadow: 0 3px 0 cornflowerblue;
-            transition: all .1s ease;
-            margin: 5px;
-        }
-        .clickable:active {
-            transform: translateY(3px);
-            box-shadow: 0 0px 0 cornflowerblue;
-        }
-        #run {
-            margin: .5px;
-        }
-        #status {
-            font-size: 16px;
-            font-family: "Roboto Mono", monospace;
-            white-space: pre;
-            padding: 15px;
-            background-color: #cce;
-            color: #333;
-            height: 50px
-        }
-        #tabs {
-            padding: 0;
-            font-size: 0;
-            text-align: left;
-            height: calc(100% - 150px);
-        }
-        #tabs [data-tab]:first-child {
-            margin-left: 48px;
-        }
-        #tabs [data-tab] {
-            cursor: default;
-            padding-left: 10px;
-            border: 1px solid #aeaeae;
-            display: inline-block;
-            font-family: "Roboto Mono", monospace;
-            width: 150px;
-            color: #666;
-            font-size: 16px;
-            height: 50px;
-            line-height: 50px;
-            user-select: none;
-            background-color: #f6f6f6;
-            transform: translateY(1px);
-            position: relative;
-        }
-        #tabs [data-tab]:not([data-id="3"]) {
-            border-right: 0;
-        }
-        #tabs [data-tab].selected {
-            border-bottom: 0;
-            color: #333;
-            background-color: #fff;
-        }
-        [data-id="3"].selected ~ #toolbox,
-        [data-id] ~ [data-id],
-        #dl-guide {
-            display: none;
-        }
-        [data-id] ~ [data-id] {
-            height: calc(100% - 50px);
-        }
-        [data-id="1"].selected ~ [data-id="1"],
-        [data-id="2"].selected ~ [data-id="2"],
-        [data-id="3"].selected ~ [data-id="3"] {
-            display: block;
-        }
+* {
+    margin: 0;
+    border: 0;
+    padding: 0;
+    outline: 0;
+    box-sizing: border-box;
+    vertical-align: middle;
+    list-style: none;
+}
+html, body {
+    font-family: "Roboto", sans-serif;
+    background-color: #efefef;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
+}
+main {
+    width: 100%;
+    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
+}
+#play-screen {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #0e0e0e;
+}
+#play-screen[data-hidden="1"] {
+    display: none;
+}
+canvas {
+    width: 800px;
+    height: 608px;
+    background-color: #333;
+}
+.part {
+    display: block;
+    padding: 30px;
+    text-align: center;
+}
+.clickable {
+    cursor: pointer;
+    user-select: none;
+    border-radius: 1px;
+    font-family: "Roboto", sans-serif;
+    font-size: 16px;
+    padding: 10px 20px;
+    background-color: #b0ccff;
+    box-shadow: 0 3px 0 cornflowerblue;
+    transition: all .1s ease;
+    margin: 5px;
+}
+.clickable:active {
+    transform: translateY(3px);
+    box-shadow: 0 0px 0 cornflowerblue;
+}
+#run {
+    margin: .5px;
+}
+#status {
+    font-size: 16px;
+    font-family: "Roboto Condensed", "Roboto", sans-serif;
+    white-space: pre;
+    padding: 15px;
+    background-color: #cce;
+    color: #333;
+    height: 50px
+}
+#tabs {
+    padding: 0;
+    font-size: 0;
+    text-align: left;
+    height: calc(100% - 150px);
+}
+#tabs [data-tab]:first-child {
+    margin-left: 48px;
+}
+#tabs [data-tab] {
+    cursor: default;
+    padding-left: 10px;
+    border: 1px solid #aeaeae;
+    display: inline-block;
+    font-family: "Roboto Condensed", "Roboto", sans-serif;
+    color: #666;
+    font-size: 16px;
+    width: 100px;
+    height: 50px;
+    line-height: 50px;
+    user-select: none;
+    background-color: #f6f6f6;
+    transform: translateY(1px);
+    position: relative;
+}
+#tabs [data-tab]:not([data-id="3"]) {
+    border-right: 0;
+}
+#tabs [data-tab].selected {
+    border-bottom: 0;
+    color: #333;
+    background-color: #fff;
+}
+[data-id="3"].selected ~ #toolbox,
+[data-id] ~ [data-id],
+#dl-guide {
+    display: none;
+}
+[data-id] ~ [data-id] {
+    height: calc(100% - 50px);
+}
+[data-id="1"].selected ~ [data-id="1"],
+[data-id="2"].selected ~ [data-id="2"],
+[data-id="3"].selected ~ [data-id="3"] {
+    display: block;
+}
 
-        #toolbox {
-            display: inline-block;
-            padding-left: 15px;
-        }
-        #toolbox button {
-            font-family: inherit;
-            padding: 5px 7px 5px 6px;
-            margin: 0 5px;
-            cursor: pointer;
-            background-color: #e0e0e0;
-        }
+#toolbox {
+    display: inline-block;
+    padding-left: 15px;
+    font-family: "Roboto Condensed", "Roboto", sans-serif;
+}
+#toolbox button {
+    font-family: inherit;
+    padding: 5px 7px 5px 6px;
+    margin: 0 5px;
+    cursor: pointer;
+    background-color: #e0e0e0;
+}
 
-        [data-id]:not(.selected) .download-file,
-        [data-id]:not(.selected) .open-file {
-            pointer-events: none;
-            opacity: .3;
-        }
-        .download-file,.open-file {
-            fill: #a0a0a0;
-            width: 20px;
-        }
-        #toolbox button:hover {
-            background-color: #d0d0d0;
-        }
-        #toolbox button:hover > .download-file,
-        #toolbox button:hover > .open-file {
-            fill: #707070;
-        }
-        .open-file {
-            right: 40px;
-        }
-        #docs {
-            overflow-y: auto;
-            text-align: left;
-            font-family: "Roboto", sans-serif;
-            background-color: #fff;
-            padding: 15px;
-            border-top: 1px solid #aeaeae;
-            height: calc(100% - 50px);
-        }
-        #docs p, #docs pre, #docs code {
-            font-size: 16px;
-        }
-        #docs h2 {
-            margin: 20px 0 10px;
-            font-size: 23px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 5px;
-        }
-        #docs pre, #docs code {
-            font-family: "Robot Mono", monospace;
-            padding: 2px;
-            background-color: #eee;
-        }
-        #docs pre {
-            margin: 10px;
-            padding: 5px 10px;
-        }
+[data-id]:not(.selected) .download-file,
+[data-id]:not(.selected) .open-file {
+    pointer-events: none;
+    opacity: .3;
+}
+.download-file,.open-file {
+    fill: #a0a0a0;
+    width: 24px;
+}
+#toolbox button:hover {
+    background-color: #d0d0d0;
+}
+#toolbox button:hover > .download-file,
+#toolbox button:hover > .open-file {
+    fill: #707070;
+}
+.open-file {
+    right: 40px;
+}
+#docs {
+    overflow-y: auto;
+    text-align: left;
+    font-family: "Roboto", sans-serif;
+    background-color: #fff;
+    padding: 15px;
+    border-top: 1px solid #aeaeae;
+    height: calc(100% - 50px);
+}
+#docs p, #docs pre, #docs code {
+    font-size: 16px;
+}
+#docs h2 {
+    margin: 20px 0 10px;
+    font-size: 23px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 5px;
+}
+#docs pre, #docs code {
+    font-family: "Robot Mono", monospace;
+    padding: 2px;
+    background-color: #eee;
+}
+#docs pre {
+    margin: 10px;
+    padding: 5px 10px;
+}
     </style>
 </head>
 <body>
@@ -247,31 +264,37 @@
             </section>
         </section>
     </main>
+    <aside id="play-screen" data-hidden="1">
+        <canvas id="game"></canvas>
+    </aside>
     <script type="text/javascript" src="tln.min.js"></script>
     <script type="text/javascript">
         append_line_numbers("load-code");
         append_line_numbers("update-code");
 
+        const load_code = document.getElementById("load-code");
+        const update_code = document.getElementById("update-code");
+        const play_screen = document.getElementById("play-screen");
+        const canvas = document.getElementById("game");
         let tape = new Uint8Array(1e4);
-        let load_code = document.getElementById("load-code");
-        let update_code = document.getElementById("update-code");
-        let sample_code = document.getElementById("sample-code");
+        let key = {  u: 0, d: 0, l: 0, r: 0, a: 0, s: 0  }
+        let mse = {  x: 0, y: 0, c: 0  }
 
-        let change_tab = function(el) {
+        function change_tab(el) {
             if(el.className != "selected") {
                 document.querySelector(".selected").className = "";
                 el.className = "selected";
             }
         }
 
-        let give = function(up = "") {
+        function give(up = "") {
             if(up.length > 0) up += ", ";
             up += "WHAT IS THIS";
 
             throw up;
         }
 
-        let download_file = function() {
+        function download_file() {
             let up = "";
             let el = document.createElement("a");
             let current_file = document.querySelector(".selected");
@@ -297,13 +320,12 @@
             document.body.removeChild(el);
         }
 
-        let open_file = function() {
+        function open_file() {
             let up = "";
 
             let dialog = document.createElement("input");
             dialog.setAttribute("type", "file");
             dialog.style.display = "none";
-            document.body.appendChild(dialog);
             dialog.onchange = function() {
                 if(this.files.length !== 1) {
                     up = "No selected file";
@@ -333,7 +355,132 @@
                 reader.readAsText(this.files[0]);
                 document.body.removeChild(this);
             }
+            document.body.appendChild(dialog);
             dialog.click();
+        }
+
+
+        function start_game(_update, _tape) {
+            const DEBUG = false;
+            play_screen.dataset.hidden = 0;
+
+            canvas.width = 800;
+            canvas.height = 608;
+            const ctx = canvas.getContext("2d");
+            let timeout;
+            let playing = true;
+            let update_function = new Function("", _update);
+
+            console.log("received");
+
+            let color = [
+                "#333",
+                "#ccc",
+                "#fff",
+                "#c33",
+                "#3c3",
+                "#33c",
+                ""
+            ];
+
+            function update() {
+                ctx.fillStyle = color[2];
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                update_function();
+                ctx.fillStyle = color[0];
+                for (let i = 0, l = 25; i  < l; i++) {
+                    for (let j = 0, k = 19; j < k; j++) {
+                        let current_cell = tape[i*25 + j];
+                        if (current_cell % color.length >= 1) {
+                            ctx.fillStyle = color[current_cell % color.length - 1];
+                            ctx.fillRect(i * 32, j * 32, 32, 32);
+                        }
+                    }
+                }
+
+                if(!playing) {
+                    console.log("banana");
+                    play_screen.dataset.hidden = 1;
+                    clearTimeout(timeout);
+                    tape = new Uint8Array(1e4);
+                    return;
+                } else {
+                    timeout = setTimeout(update, 30);
+                }
+            }
+
+            const add_event = window.addEventListener
+                ? function(obj, evtname, func) {
+                    if(obj instanceof Array)
+                        for(var i = 0; i < obj.length; i++)
+                            obj[i].addEventListener(evtname, func, false);
+                    else
+                        obj.addEventListener(evtname, func, false);
+                }
+                : function(obj, evtname, func) {
+                    if(obj instanceof Array)
+                        for(var i = 0; i < obj.length; i++)
+                            obj[i].attachEvent("on" + evtname, func);
+                    else
+                        obj.attachEvent("on" + evtname, func);
+                };
+
+            add_event(document, "keydown", function(e) {
+                console.log(e);
+                if("isTrusted" in e && !e.isTrusted) return;
+                if(e.keyCode == 27 || e.which == 27 || e.key == "Escape" || e.code == "Escape")
+                    playing = false;
+                if(e.keyCode == 37 || e.which == 37 || e.key == "ArrowLeft" || e.code == "ArrowLeft")
+                    key.l = 1;
+                if(e.keyCode == 38 || e.which == 38 || e.key == "ArrowUp" || e.code == "ArrowUp")
+                    key.u = 1;
+                if(e.keyCode == 39 || e.which == 39 || e.key == "ArrowRight" || e.code == "ArrowRight")
+                    key.r = 1;
+                if(e.keyCode == 40 || e.which == 40 || e.key == "ArrowDown" || e.code == "ArrowDown")
+                    key.d = 1;
+                if(e.keyCode == 65 || e.which == 65 || e.key == "a" || e.code == "KeyA")
+                    key.a = 1;
+                if(e.keyCode == 83 || e.which == 83 || e.key == "s" || e.code == "KeyS")
+                    key.s = 1;
+            });
+
+            add_event(document, "keyup", function(e) {
+                if("isTrusted" in e && !e.isTrusted) return;
+                if(e.keyCode == 37 || e.which == 37 || e.key == "ArrowLeft" || e.code == "ArrowLeft")
+                    key.l = 0;
+                if(e.keyCode == 38 || e.which == 38 || e.key == "ArrowUp" || e.code == "ArrowUp")
+                    key.u = 0;
+                if(e.keyCode == 39 || e.which == 39 || e.key == "ArrowRight" || e.code == "ArrowRight")
+                    key.r = 0;
+                if(e.keyCode == 40 || e.which == 40 || e.key == "ArrowDown" || e.code == "ArrowDown")
+                    key.d = 0;
+                if(e.keyCode == 65 || e.which == 65 || e.key == "a" || e.code == "KeyA")
+                    key.a = 0;
+                if(e.keyCode == 83 || e.which == 83 || e.key == "s" || e.code == "KeyS")
+                    key.s = 0;
+            });
+
+            add_event(canvas, "mousemove", function(e) {
+                if("isTrusted" in e && !e.isTrusted) return;
+                mse.x = ~~(e.offsetX/32);
+                mse.y = ~~(e.offsetY/32);
+                if(DEBUG) console.log(mse.x, mse.y, mse.x*25+mse.y);
+            });
+
+            add_event(canvas, "mousedown", function(e) {
+                if("isTrusted" in e && !e.isTrusted) return;
+                mse.c = 1;
+                if(DEBUG) console.log("PRESSED");
+            });
+
+            add_event(canvas, "mouseup", function(e) {
+                if("isTrusted" in e && !e.isTrusted) return;
+                mse.c = 0;
+                if(DEBUG) console.log("UNPRESSED");
+            });
+
+            update();
         }
     </script>
     <script type="text/javascript" src="./brainfuck.js"></script>
